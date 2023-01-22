@@ -1,31 +1,99 @@
+import React,{ useContext, useEffect,useState } from "react";
 import { useParams } from "react-router-dom";
+import Nav from 'react-bootstrap/Nav';
+import TabComponent from "../components/TabComponent";
+import '../App.css'
+import {Context1} from "../App"
 
 const Detail = (props)=>{
-    console.log(props)
-    // let [shoes] = useState() props를 받기 귀찮아서 데이터를 한번 더 받아오면 이 데이터를 수정할 일이 있으면 두번 수정해야된다.
-    // URL 파라미터에 이상한거 입력하면(id라는 변수가 이상하면) 상품이 없다는 UI 보여주세요 -> 아래 리턴문 조건식으로 처리
 
+    const [alert,setAlert] = useState(true)
+    const [text, setText] = useState("");
+    let [tap, setTap] = useState(0);
+
+    // console.log(props)
+
+    useEffect(()=>{
+        console.log("clean up function")
+            setTimeout(()=>{
+                setText("end");
+            },500)
+          return ()=>{
+            // setText("");
+            console.log("useEffect() 실행되기 전에 실행된다.")
+          }
+    },[]);
+
+
+
+    useEffect(()=>{
+        let a = setTimeout(()=>{ //타이머를 쓸 때는 변수에다가 저장해두면 좋음
+            setAlert(false)
+        },2000)
+        console.log(2)
+        //2)
+        //대충 서버로 데이터 요청하는 코드(2초 소요)
+        //근데 2초 사이에 재렌더링 되어버리면?
+        //요청이 무한 반복이 되어버림(버그가 생길 수 도 있다.)
+        return ()=>{
+            //예를들어 기존타이머는 제거해주세요~~ 하면 그전에 쓰던 기존 타이머를 제거하면 더 깔끔하게 새로운 타이머를 쓸 수 있음
+            console.log(1);
+            clearTimeout(a) //타이머 제거해주는 함수
+            //2)
+            //기존 데이터요청은 제거해주세요~ 라는 코드를 작성해주면 된다(백지상태)
+        }
+    },[])
+
+    let [value, setValue] = useState('')
     let {id} = useParams();
-    console.log(id)
+    let target = props.shoes.filter((v)=>{
+        return v.id === Number(id);
+    })
+    const onInput = (e)=>{
+        const { value } = e.target
+        setValue(value)
+        if(isNaN(value)){
+            console.log("숫자를 입력하세요!")
+        }
+    }
+
+
 
     return(
-        <div className="container">
+        <div className={`container start ${text}`}>
+            {alert ? <div className="alrer alert-warning">2초이내 구매시 할인</div> : null}
         <div className="row">
             <div className="col-md-6">
-            <img src="https://codingapple1.github.io/shop/shoes1.jpg" width="100%" />
+            <img src={`https://codingapple1.github.io/shop/shoes${target[0].id + 1}.jpg`} width="100%" />
             </div>
+            
+            {/* <input value={value} onChange={onInput} type="text" style={{width:"200px",margin:"0 auto"}}></input> */}
             <div className="col-md-6">
-            <h4 className="pt-5">{props.shoes[id].title}</h4>
+            <h4 className="pt-5">{target[0].title}</h4>
             {/*
-            /detail/0 접속시 0번째 상품말고 상품 id가 0인걸 보여주면 좋을듯 
-            id변수를 그대로 가져다가 쓰면 만약 정렬버튼이 있을때 인덱스가 뒤바뀌게 되어 상세페이지가 이상해진다.
-            해결방법 : 데이터안에 고유의 id를 가지고 보여주면 된다.
+                /detail/0 접속시 0번째 상품말고 상품 id가 0인걸 보여주면 좋을듯 
+                id변수를 그대로 가져다가 쓰면 만약 정렬버튼이 있을때 인덱스가 뒤바뀌게 되어 상세페이지가 이상해진다.
+                해결방법 : 데이터안에 고유의 id를 가지고 보여주면 된다.
             */}
-            <p>{props.shoes[id].content}</p>
-            <p>{props.shoes[id].price}원</p>
+            <p>{target[0].content}</p>
+            <p>{target[0].price}원</p>
             <button className="btn btn-danger">주문하기</button> 
             </div>
         </div>
+
+        <Nav variant="tabs" defaultActiveKey="link0">
+            {/* defaultActiveKey - 기본으로 눌려있는 버튼 */}
+            <Nav.Item>
+                <Nav.Link onClick={()=>{setTap(0)}} eventKey="link0">버튼0</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link onClick={()=>{setTap(1)}} eventKey="link1">버튼1</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+                <Nav.Link onClick={()=>{setTap(2)}} eventKey="link2">버튼2</Nav.Link>
+            </Nav.Item>
+        </Nav>
+        <TabComponent shoes={props.shoes} tap={tap} />
         </div> 
     )
 }
